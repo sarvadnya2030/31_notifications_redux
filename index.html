@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications Redux</title>
+    <script src="https://unpkg.com/redux@4/dist/redux.min.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/react-redux@8/dist/react-redux.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 30px 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container-custom {
+            max-width: 800px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 40px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .control-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .control-card h4 {
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .notification-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .notification-input input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .notification-input input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .notification-type-select {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .notification-type-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn-add-notification {
+            padding: 12px 30px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-add-notification:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .notifications-container {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .notification {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .notification.success {
+            border-left-color: #28a745;
+            background: #f0fdf4;
+        }
+
+        .notification.error {
+            border-left-color: #dc3545;
+            background: #fef2f2;
+        }
+
+        .notification.warning {
+            border-left-color: #ffc107;
+            background: #fffbf0;
+        }
+
+        .notification.info {
+            border-left-color: #17a2b8;
+            background: #f0f9fc;
+        }
+
+        .notification-icon {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-type {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #667eea;
+            margin-bottom: 4px;
+        }
+
+        .notification-message {
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .notification-time {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .btn-close-notification {
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 10px;
+            transition: color 0.3s ease;
+        }
+
+        .btn-close-notification:hover {
+            color: #333;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .clear-all-btn {
+            padding: 10px 20px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .clear-all-btn:hover {
+            background: #c82333;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .control-card {
+                padding: 20px;
+            }
+
+            .notification-input {
+                flex-direction: column;
+            }
+
+            .notification {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .btn-close-notification {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { createStore, combineReducers } = Redux;
+        const { Provider, useSelector, useDispatch } = ReactRedux;
+
+        // Actions
+        const ADD_NOTIFICATION = 'ADD_NOTIFICATION';
+        const REMOVE_NOTIFICATION = 'REMOVE_NOTIFICATION';
+        const CLEAR_ALL_NOTIFICATIONS = 'CLEAR_ALL_NOTIFICATIONS';
+
+        // Action Creators
+        const addNotification = (message, type = 'info') => ({
+            type: ADD_NOTIFICATION,
+            payload: {
+                id: Date.now(),
+                message,
+                type,
+                timestamp: new Date().toLocaleTimeString()
+            }
+        });
+
+        const removeNotification = (id) => ({
+            type: REMOVE_NOTIFICATION,
+            payload: id
+        });
+
+        const clearAllNotifications = () => ({
+            type: CLEAR_ALL_NOTIFICATIONS
+        });
+
+        // Initial State
+        const initialNotificationsState = [];
+
+        // Reducer
+        const notificationsReducer = (state = initialNotificationsState, action) => {
+            switch (action.type) {
+                case ADD_NOTIFICATION:
+                    return [...state, action.payload];
+                case REMOVE_NOTIFICATION:
+                    return state.filter(notif => notif.id !== action.payload);
+                case CLEAR_ALL_NOTIFICATIONS:
+                    return [];
+                default:
+                    return state;
+            }
+        };
+
+        // Store
+        const store = createStore(notificationsReducer);
+
+        // Components
+        function NotificationItem({ notification, onDismiss }) {
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+
+            return (
+                <div className={`notification ${notification.type}`}>
+                    <div className="notification-content">
+                        <div className="notification-type">
+                            <span className="notification-icon">{icons[notification.type]}</span>
+                            {notification.type}
+                        </div>
+                        <div className="notification-message">{notification.message}</div>
+                        <div className="notification-time">{notification.timestamp}</div>
+                    </div>
+                    <button
+                        className="btn-close-notification"
+                        onClick={() => onDismiss(notification.id)}
+                    >
+                        ✕
+                    </button>
+                </div>
+            );
+        }
+
+        function NotificationsApp() {
+            const dispatch = useDispatch();
+            const notifications = useSelector(state => state);
+            const [message, setMessage] = React.useState('');
+            const [notificationType, setNotificationType] = React.useState('info');
+
+            const handleAddNotification = () => {
+                if (message.trim()) {
+                    dispatch(addNotification(message, notificationType));
+                    setMessage('');
+                }
+            };
+
+            const handleKeyPress = (e) => {
+                if (e.key === 'Enter') {
+                    handleAddNotification();
+                }
+            };
+
+            const sampleNotifications = [
+                { text: 'Success Message', type: 'success' },
+                { text: 'Error Message', type: 'error' },
+                { text: 'Warning Message', type: 'warning' },
+                { text: 'Info Message', type: 'info' }
+            ];
+
+            return (
+                <div className="container container-custom">
+                    <div className="header">
+                        <h1>🔔 Notifications System</h1>
+                        <p>Redux-powered notification management</p>
+                    </div>
+
+                    {/* Control Card */}
+                    <div className="control-card">
+                        <h4>Create Notification</h4>
+
+                        <div className="notification-input">
+                            <input
+                                type="text"
+                                value={message}
+                                onChange={(e) => setMessage(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                                placeholder="Enter notification message..."
+                            />
+                            <select
+                                className="notification-type-select"
+                                value={notificationType}
+                                onChange={(e) => setNotificationType(e.target.value)}
+                            >
+                                <option value="info">Info</option>
+                                <option value="success">Success</option>
+                                <option value="warning">Warning</option>
+                                <option value="error">Error</option>
+                            </select>
+                            <button
+                                className="btn-add-notification"
+                                onClick={handleAddNotification}
+                            >
+                                Add
+                            </button>
+                        </div>
+
+                        <div style={{ marginTop: '20px' }}>
+                            <h5 style={{ marginBottom: '10px', color: '#333' }}>Quick Add:</h5>
+                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                {sampleNotifications.map((sample) => (
+                                    <button
+                                        key={sample.type}
+                                        onClick={() => dispatch(addNotification(sample.text, sample.type))}
+                                        style={{
+                                            padding: '8px 16px',
+                                            background: '#667eea',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '6px',
+                                            cursor: 'pointer',
+                                            fontSize: '12px',
+                                            fontWeight: '600',
+                                            transition: 'all 0.3s'
+                                        }}
+                                        onMouseEnter={(e) => e.target.style.background = '#764ba2'}
+                                        onMouseLeave={(e) => e.target.style.background = '#667eea'}
+                                    >
+                                        {sample.type}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Notifications Display */}
+                    <div className="control-card">
+                        <h4>Notifications ({notifications.length})</h4>
+
+                        {notifications.length > 0 ? (
+                            <>
+                                <div className="notifications-container">
+                                    {notifications.map((notification) => (
+                                        <NotificationItem
+                                            key={notification.id}
+                                            notification={notification}
+                                            onDismiss={(id) => dispatch(removeNotification(id))}
+                                        />
+                                    ))}
+                                </div>
+                                <button
+                                    className="clear-all-btn"
+                                    onClick={() => dispatch(clearAllNotifications())}
+                                >
+                                    Clear All
+                                </button>
+                            </>
+                        ) : (
+                            <div className="empty-state">
+                                <div className="empty-state-icon">📭</div>
+                                <p>No notifications yet</p>
+                                <p style={{ fontSize: '12px', color: '#bbb' }}>
+                                    Create one above or use quick add buttons
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(
+            <Provider store={store}>
+                <NotificationsApp />
+            </Provider>,
+            document.getElementById('root')
+        );
+    </script>
+</body>
+</html>
